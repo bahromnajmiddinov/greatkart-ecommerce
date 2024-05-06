@@ -18,6 +18,9 @@ class Product(models.Model):
     updated = models.DateTimeField(auto_now=True)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     
+    class Meta:
+        ordering = ['-created', '-updated']
+    
     def __str__(self):
         return self.name
     

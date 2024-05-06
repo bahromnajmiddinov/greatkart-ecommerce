@@ -2,6 +2,8 @@
 
 {% load static %}
 
+{% load custom_tags %}
+
 {% block content %}
 
 <!-- ========================= SECTION PAGETOP ========================= -->
@@ -144,7 +146,15 @@
 						<del class="price-old">$1980</del>
 					</div> <!-- price-wrap.// -->
 				</div>
+				{% if product.stock %}
+				{% if product|is_in_cart:request %}
+				<a href="#" class="btn btn-block btn-success">Added to cart </a>
+				{% else %}
 				<a href="{% url 'add_cart' product.id %}" class="btn btn-block btn-primary">Add to cart </a>
+				{% endif %}
+				{% else %}
+				<a href="{{ product.get_absolute_url }}" class="btn btn-block btn-primary">View Details</a>
+				{% endif %}
 			</figcaption>
 		</figure>
 	</div> <!-- col.// -->
@@ -153,13 +163,15 @@
 
 
 <nav class="mt-4" aria-label="Page navigation sample">
+  {% if products.has_other_pages %}
   <ul class="pagination">
-    <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-    <li class="page-item"><a class="page-link" href="#">2</a></li>
-    <li class="page-item"><a class="page-link" href="#">3</a></li>
-    <li class="page-item"><a class="page-link" href="#">Next</a></li>
+    <li class="page-item {% if not products.has_previous %}disabled{% endif %}"><a class="page-link" href="{% if products.has_previous %}?page={{ products.previous_page_number }}&{{ request.GET.urlencode }}{% endif %}">Previous</a></li>
+    {% for page in products.paginator.page_range %}
+	<li class="page-item {% if products.number == page %}active{% endif %}"><a class="page-link" href="?page={{ page }}">{{ page }}</a></li>
+	{% endfor %}
+    <li class="page-item {% if not products.has_next %}disabled{% endif %}"><a class="page-link" href="{% if products.has_next %}?page={{ products.next_page_number }}&{{ request.GET.urlencode }}{% endif %}">Next</a></li>
   </ul>
+  {% endif %}
 </nav>
 
 	</main> <!-- col.// -->
