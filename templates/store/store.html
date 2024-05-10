@@ -148,7 +148,7 @@
 				</div>
 				{% if product.stock %}
 				{% if product|is_in_cart:request %}
-				<a href="#" class="btn btn-block btn-success">Added to cart </a>
+				<a href="{% url 'cart' %}" class="btn btn-block btn-success">Added to cart </a>
 				{% else %}
 				<a href="{% url 'add_cart' product.id %}" class="btn btn-block btn-primary">Add to cart </a>
 				{% endif %}

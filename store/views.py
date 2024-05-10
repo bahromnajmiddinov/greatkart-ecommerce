@@ -33,8 +33,14 @@ def store(request):
 
 def product_detail(request, category_slug, product_slug):
     product = get_object_or_404(Product, slug=product_slug, category__slug=category_slug)
+    
+    colors = product.variation_set.colors
+    sizes = product.variation_set.sizes
+    
     context = {
         'product': product,
+        'colors': colors,
+        'sizes': sizes,
     }
     
     return render(request, 'store/product_detail.html', context)
