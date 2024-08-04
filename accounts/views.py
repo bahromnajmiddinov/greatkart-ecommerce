@@ -1,7 +1,16 @@
+from config import settings
 from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.contrib.auth import authenticate, logout, login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
+
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
 
 from .models import Account
 from .forms import AccountForm
@@ -31,27 +40,52 @@ def register(request):
             user.phone_number = phone_number
             user.save()
             
-            messages.success(request, 'Account created successfully')
+            # USER ACTIVATION EMAIL
+            current_site = get_current_site(request)
+            activation_url = reverse('activate', kwargs={'uidb64': urlsafe_base64_encode(force_bytes(user.pk)),
+                                                          'token': default_token_generator.make_token(user)})
+            message = render_to_string('accounts/activation_email.html', {
+                'user': user,
+                'domain': current_site.domain,
+                'protocol': 'https' if request.is_secure() else 'http',
+                'uidb64': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': default_token_generator.make_token(user),
+            })
+            send_mail(
+                subject='Activate your GreatKart Account',
+                message=message,
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[email],
+                fail_silently=False,
+            )
             
-            return redirect('login')
+            messages.success(request, 'Account created successfully. Please check your email for the activation link.')
+            
+            redirect_url = reverse('login') + f'?confirmationemail={ email }?command=activate'
+            return redirect(redirect_url)
         
     return render(request, 'accounts/register.html', {'form': form})
 
 
 def login(request):
+    confirmationemail = request.GET.get('confirmationemail')
+    
     if request.method == 'POST':
         password = request.POST.get('password')
         email = request.POST.get('email')
-        user = authenticate(email=email, password=password)
+        user = authenticate(request, email=email, password=password)
         
         if user is not None:
-            auth_login(request, user)
-            messages.success(request, 'Logged in successfully')
-            return redirect('home')
-        
-        messages.error(request, 'Invalid credentials')
+            if user.is_active:
+                auth_login(request, user)
+                messages.success(request, 'Logged in successfully')
+                return redirect('home')
+            else:
+                messages.info(request, 'Your account is not active. Please check your email for the activation link.')
+        else:
+            messages.error(request, 'Invalid credentials')
     
-    return render(request, 'accounts/signin.html')
+    return render(request, 'accounts/signin.html', {'confirmationemail': confirmationemail})
 
 
 @login_required(login_url='login')
@@ -61,3 +95,18 @@ def logout(request):
     return render(redirect('login'))
 
 
+def activate(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = Account._default_manager.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, Account.DoesNotExist):
+        user = None
+    
+    if user is not None and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        messages.success(request, 'Account activated successfully')
+        return redirect('login')
+    
+    messages.error(request, 'Activation link is invalid or expired')
+    return render(request, 'accounts/activation_error.html')

@@ -5,13 +5,20 @@
 <section class="section-conten padding-y" style="min-height:84vh">
 
 <!-- ============================ COMPONENT LOGIN   ================================= -->
+	{% if request.GET.command == 'activate' %}
+	<div class="container mx-auto alert alert-info text-center" role="alert" style="max-width: 1024px; margin-top:100px;">
+		Thank you for registering with us. We have sent you a verification link to you email address {{ confirmationemail }}
+		<br>
+		Already verified? <a href="{% url 'login' %}">Login</a>
+	</div>
+	{% else %}
 	<div class="card mx-auto" style="max-width: 380px; margin-top:100px;">
       <div class="card-body">
       <h4 class="card-title mb-4">Sign in</h4>
       <form method="POST">
 		 {% csrf_token %}
           <div class="form-group">
-			 <input type="email" class="form-control" placeholder="Email Address" name="email" >
+			 <input type="email" class="form-control" placeholder="Email Address" name="email">
           </div> <!-- form-group// -->
           <div class="form-group">
 			<input type="password" class="form-control" placeholder="Password" name="password" >
@@ -30,6 +37,7 @@
 
      <p class="text-center mt-4">Don't have account? <a href="{% url 'register' %}">Sign up</a></p>
      <br><br>
+    {% endif %}
 <!-- ============================ COMPONENT LOGIN  END.// ================================= -->
 
 
