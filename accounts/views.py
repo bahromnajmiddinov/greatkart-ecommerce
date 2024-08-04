@@ -16,6 +16,11 @@ from .models import Account
 from .forms import AccountForm
 
 
+@login_required(login_url='login')
+def dashboard(request):
+    return render(request, 'accounts/dashboard.html')
+
+
 def register(request):
     form = AccountForm()
     
@@ -79,7 +84,7 @@ def login(request):
             if user.is_active:
                 auth_login(request, user)
                 messages.success(request, 'Logged in successfully')
-                return redirect('home')
+                return redirect('dashboard')
             else:
                 messages.info(request, 'Your account is not active. Please check your email for the activation link.')
         else:
