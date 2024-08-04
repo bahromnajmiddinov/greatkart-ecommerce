@@ -115,3 +115,68 @@ def activate(request, uidb64, token):
     
     messages.error(request, 'Activation link is invalid or expired')
     return render(request, 'accounts/activation_error.html')
+
+
+def password_reset(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        user = Account.objects.filter(email=email).first()
+        
+        if user:
+            current_site = get_current_site(request)
+            reset_url = reverse('password_reset_confirm', kwargs={'uidb64': urlsafe_base64_encode(force_bytes(user.pk)),
+                                                              'token': default_token_generator.make_token(user)})
+            message = render_to_string('accounts/password_reset_email.html', {
+                'user': user,
+                'domain': current_site.domain,
+                'protocol': 'https' if request.is_secure() else 'http',
+                'uidb64': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': default_token_generator.make_token(user),
+            })
+            send_mail(
+                subject='Password Reset Request',
+                message=message,
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[email],
+                fail_silently=False,
+            )
+            messages.success(request, 'Password reset link sent to your email address')
+            return redirect('login')
+        
+        messages.error(request, 'No account found with that email address')
+    
+    return render(request, 'accounts/password_reset.html')
+
+
+def password_reset_confirm(request, uidb64, token):
+    # Get user from uidb64 and token
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = Account._default_manager.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, Account.DoesNotExist):
+        user = None
+    
+    # If request method is POST and new password and confirm password match, update password
+    if request.method == 'POST':
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        # If passwords do not match, return to password reset form with error message
+        if new_password != confirm_password:
+            messages.error(request, 'Passwords do not match')
+            return reverse('password_reset_confirm', kwargs={'uidb64': urlsafe_base64_encode(force_bytes(user.pk)),
+                                                              'token': default_token_generator.make_token(user)})
+    
+        if user and default_token_generator.check_token(user, token):
+            user.set_password(new_password)
+            user.save()
+            messages.success(request, 'Password reset successful')
+            return redirect('login')
+        
+        messages.error(request, 'Password reset failed')
+    
+    # If user exists and token is valid, render password reset form
+    if user is not None and default_token_generator.check_token(user, token):
+        return render(request, 'accounts/password_reset_form.html', {'user': user})
+    
+    messages.error(request, 'Password reset link is invalid or expired')
+    return redirect('password_reset')
