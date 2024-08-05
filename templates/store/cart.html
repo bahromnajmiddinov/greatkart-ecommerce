@@ -50,14 +50,14 @@
 					<div class="col"> 
 						<div class="input-group input-spinner">
 							<div class="input-group-prepend">
-								<form action="{% url 'increase_cart' cart_item.id %}" method="POST">
+								<form action="{% url 'increase_cart_item' cart_item.id %}" method="POST">
 									{% csrf_token %}
 									<button type="submit" class="btn btn-light" type="button" id="button-plus"> <i class="fa fa-plus"></i> </button>
 								</form>
 							</div>
 							<input type="text" class="form-control"  value="{{ cart_item.quantity }}">
 							<div class="input-group-append">
-								<form action="{% url 'remove_cart' cart_item.id %}" method="POST">
+								<form action="{% url 'remove_from_cart' cart_item.id %}" method="POST">
 									{% csrf_token %}
 									<button type="submit" class="btn btn-light" type="button" id="button-minus"> <i class="fa fa-minus"></i> </button>
 								</form>
@@ -72,7 +72,7 @@
 		</div> <!-- price-wrap .// -->
 	</td>
 	<td class="text-right"> 
-	<form action="{% url 'delete_cart' cart_item.id %}" method="POST">
+	<form action="{% url 'delete_from_cart' cart_item.id %}" method="POST">
 		{% csrf_token %}
 		<button type='submit' class="btn btn-danger"> Remove</button>
 	</form>

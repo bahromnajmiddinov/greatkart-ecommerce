@@ -3,7 +3,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
 
 from carts.models import CartItem
-from carts.views import _cart_id
+from carts.views import _get_cart
 from .models import Product
 from categories.models import Category
 

@@ -1,9 +1,12 @@
-from .models import Cart, CartItem
-from .views import _cart_id
+from .models import CartItem
+from .views import _get_cart
 
 
 def cart_item_counter(request):
-    cart, created = Cart.objects.get_or_create(cart_id=_cart_id(request))
-    cart_items_count = CartItem.objects.filter(cart=cart).count()
+    cart = _get_cart(request)
+    if request.user.is_authenticated:
+        cart_items_count = CartItem.objects.filter(cart=cart).count()
+    else:
+        cart_items_count = len(cart)
     
     return dict(cart_items_count=cart_items_count)
