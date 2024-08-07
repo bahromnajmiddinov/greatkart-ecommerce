@@ -4,7 +4,7 @@
 
 {% block content %}
 <section class="section-content padding-y bg">
-<div class="container">
+<form class="container">
 
 
 
@@ -26,10 +26,10 @@
 		{% for item in cart_items %}
 		<div class="col-md-6">
 			<figure class="itemside  mb-4">
-				<div class="aside"><img src="{% static './images/items/1.jpg' %}" class="border img-sm"></div>
+				<div class="aside"><img src="{{ item.product.image.url }}" class="border img-sm"></div>
 				<figcaption class="info">
 					<p>{{ item.product }}</p>
-					<span class="text-muted">{{ item.quantity }}x = ${{ item.total_price }} </span>
+					<span class="text-muted">{{ item.quantity }}x = ${{ item.total }} </span>
 				</figcaption>
 			</figure>
 		</div> <!-- col.// -->
@@ -45,7 +45,7 @@
 	<form action="">
 		<div class="row">
 			<div class="form-group col-sm-6">
-				<label>Frst name</label>
+				<label>First name</label>
 				<input type="text" placeholder="Type here" class="form-control">
 			</div>
 			<div class="form-group col-sm-6">
@@ -115,7 +115,7 @@
 <article class="accordion" id="accordion_pay">
 	<div class="card">
 		<header class="card-header">
-			<img src="./images/misc/payment-paypal.png" class="float-right" height="24"> 
+			<img src="{% static 'images/misc/payment-paypal.png' %}" class="float-right" height="24"> 
 			<label class="form-check collapsed" data-toggle="collapse" data-target="#pay_paynet">
 				<input class="form-check-input" name="payment-option" checked type="radio" value="option2">
 				<h6 class="form-check-label"> 
@@ -127,7 +127,7 @@
 		<div class="card-body">
 			<p class="text-center text-muted">Connect your PayPal account and use it to pay your bills. You'll be redirected to PayPal to add your billing information.</p>
 			<p class="text-center">
-				<a href="#"><img src="{% static './images/misc/btn-paypal.png' %}" height="32"></a>
+				<a href="#"><img src="{% static 'images/misc/btn-paypal.png' %}" height="32"></a>
 				<br><br>
 			</p>
 		</div> <!-- card body .// -->
@@ -135,7 +135,7 @@
 	</div> <!-- card.// -->
 	<div class="card">
 	<header class="card-header">
-		<img src="{% static './images/misc/payment-card.png' %}" class="float-right" height="24">  
+		<img src="{% static 'images/misc/payment-card.png' %}" class="float-right" height="24">  
 		<label class="form-check" data-toggle="collapse" data-target="#pay_payme">
 			<input class="form-check-input" name="payment-option" type="radio" value="option2">
 			<h6 class="form-check-label"> Credit Card  </h6>
@@ -175,9 +175,9 @@
 			</dl>
 			<hr>
 			<p class="text-center mb-3">
-				<img src="{% static './images/misc/payments.png' %}" height="26">
+				<img src="{% static 'images/misc/payments.png' %}" height="26">
 			</p>
-			<a href="./place-order.html" class="btn btn-primary btn-block"> Place Order </a>
+			<button type="submit" class="btn btn-primary btn-block"> Place Order </button>
 			
 		</div> <!-- card-body.// -->
 		</div> <!-- card.// -->
@@ -189,7 +189,7 @@
 
 
 
-</div> <!-- container .//  -->
+</form> <!-- container .//  -->
 </section>
 <!-- ========================= SECTION CONTENT END// ========================= -->
 

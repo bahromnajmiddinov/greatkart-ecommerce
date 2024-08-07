@@ -84,7 +84,9 @@ def login(request):
             if user.is_active:
                 auth_login(request, user)
                 messages.success(request, 'Logged in successfully')
-                return redirect('dashboard')
+                # get the next URL to redirect to after successful login
+                next_url = request.GET.get('next', 'dashboard')
+                return redirect(next_url)
             else:
                 messages.info(request, 'Your account is not active. Please check your email for the activation link.')
         else:

@@ -22,8 +22,8 @@ def move_session_data_to_database(sender, request, user, **kwargs):
             variations = []
             
             try:
-                variation_color = Variation.objects.get(id=key[1][0], category='color')
-                variation_size = Variation.objects.get(id=key[1][1], category='size')
+                variation_color = Variation.objects.get(id=key.split(' ')[1], category='color')
+                variation_size = Variation.objects.get(id=key.split(' ')[2], category='size')
                 variations.append(variation_color)
                 variations.append(variation_size)
             except: pass

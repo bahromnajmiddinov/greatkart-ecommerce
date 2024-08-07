@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.views.decorators.http import require_POST
-from django.db.models import Q, F
 from django.contrib.auth.decorators import login_required
 
 import shortuuid
@@ -13,7 +13,7 @@ def _get_cart(request):
     if request.user.is_anonymous:
         cart = request.session.get('cart', {})
     else:
-        cart = Cart.objects.get_or_create(cart_id=request.user.id)
+        cart, created = Cart.objects.get_or_create(cart_id=request.user.id)
         
     return cart
 
@@ -36,6 +36,8 @@ def add_cart(request, product_id):
     size = request.POST.get('size', '')
     product = get_object_or_404(Product, pk=product_id)
     variations = _get_variation(product, color, size)
+    if len(variations) == 0:
+        return redirect('product_detail', category_slug=product.category.slug, product_slug=product.slug)
     
     cart = _get_cart(request)
     # anonymous user cart item addition
@@ -43,12 +45,13 @@ def add_cart(request, product_id):
         # cart = {
         #     ['product_id', ['variation_color', 'variation_size']]: [quantity, cart_item_id],
         # }
-        variations = [variations[0].id, variations[1].id]
+        variations = f'{variations[0].id} {variations[1].id}'
+        custom_key = f'{product.id} {variations}'
         
-        if ['product_id', variations] not in cart:
-            cart[['product_id', variations]] = [1, shortuuid.uuid()]
+        if custom_key not in cart:
+            cart[custom_key] = [1, shortuuid.uuid()]
         else:
-            cart[['product_id', variations]][0] += 1
+            cart[custom_key][0] += 1
         request.session['cart'] = cart
         return redirect('cart')
     # authorized user cart item addition
@@ -71,7 +74,7 @@ def increase_cart_item(request, cart_item_id):
         cart = _get_cart(request)
         for key, value in cart.items():
             if value[1] == cart_item_id:
-                product = get_object_or_404(Product, pk=key[0])
+                product = get_object_or_404(Product, pk=key.split(' ')[0])
                 if product.stock > value[0]:
                     cart[key][0] += 1
                 break
@@ -115,8 +118,8 @@ def delete_from_cart(request, cart_item_id):
     # anony user cart removal
     if request.user.is_anonymous:
         cart = _get_cart(request)
-        for key in cart.keys():
-            if key[1] == cart_item_id:
+        for key, value in cart.items():
+            if value[1] == cart_item_id:
                 del cart[key]
                 break
         request.session['cart'] = cart
@@ -135,7 +138,7 @@ def cart(request):
     if request.user.is_anonymous:
         cart_items = []
         for key, value in cart.items():
-            product = get_object_or_404(Product, pk=key[0])
+            product = get_object_or_404(Product, pk=key.split(' ')[0])
             total += product.price * value[0]
             quantity += value[0]
             
@@ -143,6 +146,9 @@ def cart(request):
                 'product': product,
                 'quantity': value[0],
                 'id': value[1],
+                'total': product.price * value[0],
+                'variations': Variation.objects.filter(product=product, id__in=[key.split(' ')[1], 
+                                                                                key.split(' ')[2]]).all()
             })
     else:    
         cart_items = CartItem.objects.filter(cart=cart, is_active=True)
@@ -162,11 +168,12 @@ def cart(request):
     return render(request, 'store/cart.html', context)
 
 
-@login_required(login_url='login')
+@login_required
 def checkout(request):
+    login_url = reverse('login') + '?next=cart'
+    
     cart= _get_cart(request)
     cart_items = CartItem.objects.filter(cart=cart, is_active=True)
-    cart_items.annotate(total_price=F('product__price') * F('quantity'))
     total = 0
     for cart_item in cart_items:
         total += (cart_item.product.price * cart_item.quantity)
