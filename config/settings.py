@@ -47,12 +47,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # 3rd party
+    'django_countries',
     # local
     'home.apps.HomeConfig',
     'categories.apps.CategoriesConfig',
     'accounts.apps.AccountsConfig',
     'store.apps.StoreConfig',
     'carts.apps.CartsConfig',
+    'order.apps.OrderConfig',
 ]
 
 MIDDLEWARE = [

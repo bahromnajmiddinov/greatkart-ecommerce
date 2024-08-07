@@ -1,7 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
 from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required
 
 import shortuuid
 
@@ -166,23 +164,3 @@ def cart(request):
         'grand_total': grand_total,
     }
     return render(request, 'store/cart.html', context)
-
-
-@login_required
-def checkout(request):
-    login_url = reverse('login') + '?next=cart'
-    
-    cart= _get_cart(request)
-    cart_items = CartItem.objects.filter(cart=cart, is_active=True)
-    total = 0
-    for cart_item in cart_items:
-        total += (cart_item.product.price * cart_item.quantity)
-    tax = (2 * total) / 100
-    grand_total = total + tax
-    context = {
-        'cart_items': cart_items,
-        'total': total,
-        'tax': tax,
-        'grand_total': grand_total,
-    }
-    return render(request, 'store/place-order.html', context)

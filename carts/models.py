@@ -10,6 +10,9 @@ class Cart(models.Model):
     
     def __str__(self):
         return self.cart_id
+    
+    def clear(self):
+        self.cartitems_set.all().delete()
 
 
 class CartItem(models.Model):
